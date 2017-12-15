@@ -9,8 +9,13 @@ import settings
 
 
 class Url(object):
+    # 相册列表
     ALBUM_LIST = 'http://photo.weibo.com/albums/get_all'
+    # 相册图片的id
     PHOTO_IDS = 'http://photo.weibo.com/photos/get_photo_ids'
+    # 相册图片列表
+    PHOTO_LIST = 'http://photo.weibo.com/photos/get_all'
+    # 大图列表
     LARGE_LIST = 'http://photo.weibo.com/photos/get_multiple'
 
 
@@ -92,7 +97,7 @@ class WeiboApi(object):
     @staticmethod
     def fetch_photo_ids(uid, album_id, type):
         """
-        获取相册的图片列表
+        获取相册的图片id列表
         :param uid: 用户id
         :param album_id: 相册id
         :param type: 相册类型
@@ -105,6 +110,28 @@ class WeiboApi(object):
             '__rnd': WeiboApi.make_rnd()
         }
         return WeiboApi.get_json(Url.PHOTO_IDS, params=params)
+
+    @staticmethod
+    def fetch_photo_list(uid, album_id, type, count=100, page=1):
+        """
+        获取相册的图片列表
+        :param uid: 用户id
+        :param album_id: 相册id
+        :param type: 相册类型
+        :param count: 每页图片数
+        :param page: 页数
+        :return:
+        """
+        params = {
+            'uid': uid,
+            'album_id': album_id,
+            'count': count,
+            'page': page,
+            'type': type,
+            '__rnd': WeiboApi.make_rnd()
+        }
+        data = WeiboApi.get_json(Url.PHOTO_LIST, params=params)
+        return data['photo_list']
 
     @staticmethod
     def fetch_large_list(uid, ids, type):
