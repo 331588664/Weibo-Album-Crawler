@@ -83,6 +83,36 @@ class Crawler(object):
             else:
                 self.logger.info(Fore.BLUE + '《%s》 已完成' % album['caption'])
 
+    def __fetch_pics(self, album):
+        """
+        获取某相册所有图片id
+        :param album: 相册
+        :return: list
+        """
+        # TODO: 需控制频率，否则易掉线
+        page_size, all_pic_ids = 100, set()
+        max_page = int(album['count']['photos'] / page_size + 5)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_to_page = {
+                executor.submit(
+                    WeiboApi.fetch_photo_list,
+                    self.uid, album['album_id'], album['type'], page_size, page
+                ): page
+                for page in range(1, max_page + 1)
+            }
+
+            for i, future in enumerate(concurrent.futures.as_completed(future_to_page)):
+                page = future_to_page[future]
+                try:
+                    photo_list = future.result()
+                except Exception as exc:
+                    err = '%d/%d 抛出了异常: %s' % (page, max_page, exc)
+                    self.logger.error(''.join([Fore.RED, err]))
+                else:
+                    all_pic_ids.update([p['photo_id'] for p in photo_list])
+        return list(all_pic_ids)
+
     def __fetch_large_pics(self, album, ids):
         """
         获取某相册所有的大图数据
